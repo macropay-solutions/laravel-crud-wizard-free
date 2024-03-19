@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Excel;
@@ -23,6 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 trait ResourceControllerTrait
 {
     protected string $label = '';
+    protected bool $simplePaginate = false;
     protected array $modelFqnToControllerMap = [];
     protected ResourceServiceInterface $resourceService;
     protected array $paginationKeys = [
@@ -48,6 +50,7 @@ trait ResourceControllerTrait
     public function list(Request $request): Response
     {
         $allRequest = $request->all();
+        $this->setSimplePaginate($allRequest);
 
         return $this->handleList($allRequest, $request);
     }
@@ -163,7 +166,9 @@ trait ResourceControllerTrait
     protected function handleList(array $allRequest, Request $request): Response
     {
         try {
-            $lengthAwarePaginator = $this->resourceService->list($allRequest)->paginate(
+            $paginator = $this->resourceService->list(
+                $allRequest
+            )->{$this->simplePaginate ? 'simplePaginate' : 'paginate'}(
                 max((int)($allRequest['limit'] ?? 10), 1),
                 ['*'],
                 'page',
@@ -171,14 +176,14 @@ trait ResourceControllerTrait
             );
 
             if ($request->header('Accept') === 'application/xls') {
-                return $this->downloadXLS($lengthAwarePaginator);
+                return $this->downloadXLS($paginator);
             }
 
             if ([] !== $indexRequiredOnFiltering = $this->resourceService->getIndexRequiredOnFiltering()) {
                 $appends['index_required_on_filtering'] = $indexRequiredOnFiltering;
             }
 
-            return $this->getJsonResponse($lengthAwarePaginator, $appends ?? []);
+            return $this->getJsonResponse($paginator, $appends ?? []);
         } catch (\Throwable $e) {
             if (isset($allRequest['logError'])) {
                 Log::error($this->label . ' list for ' . \json_encode($allRequest) . ', error = ' . $e->getMessage());
@@ -206,19 +211,25 @@ trait ResourceControllerTrait
 
     protected function getEmptyPaginatedResponse(array $request): JsonResponse
     {
-        return $this->getJsonResponse(GeneralHelper::app(LengthAwarePaginator::class, [
+        $data = [
             'items' => [],
-            'total' => 0,
             'perPage' => \max(0, $request['limit'] ?? 10),
             'currentPage' => 1,
-        ]));
+        ];
+
+        return $this->getJsonResponse(
+            $this->simplePaginate ?
+                GeneralHelper::app(Paginator::class, $data) :
+                GeneralHelper::app(LengthAwarePaginator::class, \array_merge($data, ['total' => 0])),
+            ['sums' => [], 'avgs' => [], 'mins' => [], 'maxs' => []]
+        );
     }
 
-    protected function getJsonResponse(LengthAwarePaginator $lengthAwarePaginator, array $appends = []): JsonResponse
+    protected function getJsonResponse(LengthAwarePaginator | Paginator $paginator, array $appends = []): JsonResponse
     {
         return GeneralHelper::app(JsonResponse::class, [
             'data' => \array_merge($appends, GeneralHelper::filterDataByKeys(
-                $lengthAwarePaginator->toArray(),
+                $paginator->toArray(),
                 $this->paginationKeys
             )),
             'status' => 200
@@ -262,12 +273,12 @@ trait ResourceControllerTrait
         return [];
     }
 
-    protected function downloadXLS(LengthAwarePaginator $lengthAwarePaginator): Response
+    protected function downloadXLS(LengthAwarePaginator | Paginator $paginator): Response
     {
         /** @var ListResourceExcel $exporter */
         $exporter = GeneralHelper::app(ListResourceExcel::class, [
             'baseModel' => $relatedModel ?? GeneralHelper::app($this->getResourceAsModelFQN()),
-            'lap' => $lengthAwarePaginator
+            'lap' => $paginator
         ]);
 
         return $exporter->download(
@@ -275,5 +286,10 @@ trait ResourceControllerTrait
             Excel::XLS,
             $this->getDownloadHeaders()
         );
+    }
+
+    protected function setSimplePaginate(array $allRequest): void
+    {
+        $this->simplePaginate = isset($allRequest['simplePaginate']) ? true : $this->simplePaginate;
     }
 }

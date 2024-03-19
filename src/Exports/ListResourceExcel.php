@@ -2,7 +2,7 @@
 
 namespace MacropaySolutions\LaravelCrudWizard\Exports;
 
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +24,7 @@ class ListResourceExcel implements WithMultipleSheets
 
     public function __construct(
         BaseModel $baseModel,
-        LengthAwarePaginator $lap,
+        AbstractPaginator $lap,
         array $withRelations = [],
         ?BaseModel $baseResourceModel = null
     ) {

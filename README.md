@@ -229,10 +229,10 @@ Json Response:
             }
         ],
         "from": 1,
-        "last_page": 1,
+        "last_page": 1, // not present when simplePaginate is true in controller or present on request
         "per_page": 10,
         "to": 1,
-        "total": 1
+        "total": 1 // not present when simplePaginate is true in controller or present on request
     }
 
 and for application/xls: binary with contents from `data`
@@ -240,12 +240,14 @@ and for application/xls: binary with contents from `data`
 The reserved words / parameters that will be used as query params are:
 
         page,
-        limit
+        limit,
+        simplePaginate
 
 Defaults:
 
     page=1;
     limit=10;
+    simplePaginate is false by default and only its presence is check in request, not its value
 
 Obs.
 
