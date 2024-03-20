@@ -232,7 +232,8 @@ Json Response:
         "last_page": 1, // not present when simplePaginate is true in controller or present on request
         "per_page": 10,
         "to": 1,
-        "total": 1 // not present when simplePaginate is true in controller or present on request
+        "total": 1, // not present when simplePaginate is true in controller or present on request
+        "has_more_pages": bool
     }
 
 and for application/xls: binary with contents from `data`

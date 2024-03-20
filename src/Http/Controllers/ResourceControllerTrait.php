@@ -219,7 +219,7 @@ trait ResourceControllerTrait
 
         return $this->getJsonResponse(
             $this->simplePaginate ?
-                GeneralHelper::app(Paginator::class, $data) :
+                GeneralHelper::app(Paginator::class, $data)->hasMorePagesWhen(false) :
                 GeneralHelper::app(LengthAwarePaginator::class, \array_merge($data, ['total' => 0])),
             ['sums' => [], 'avgs' => [], 'mins' => [], 'maxs' => []]
         );
@@ -228,7 +228,9 @@ trait ResourceControllerTrait
     protected function getJsonResponse(LengthAwarePaginator | Paginator $paginator, array $appends = []): JsonResponse
     {
         return GeneralHelper::app(JsonResponse::class, [
-            'data' => \array_merge($appends, GeneralHelper::filterDataByKeys(
+            'data' => \array_merge([
+                'has_more_pages' => $paginator->hasMorePages(),
+            ], $appends, GeneralHelper::filterDataByKeys(
                 $paginator->toArray(),
                 $this->paginationKeys
             )),
