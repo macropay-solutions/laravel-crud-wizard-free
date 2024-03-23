@@ -2,23 +2,10 @@
 
 This is a stripped down untested version from the paid tested version [Laravel crud wizard](https://github.com/macropay-solutions/laravel-lumen-crud-wizard)
 
-## Add this to your composer json
+## Install
 
-    "require": {
-        "macropay-solutions/laravel-crud-wizard-free": "dev-production"
-    },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "git@github.com:macropay-solutions/laravel-crud-wizard-free.git"
-        }
-    ],
+    composer install macropay-solutions/laravel-crud-wizard-free
 
-And run
-
-    composer update macropay-solutions/laravel-crud-wizard-free
-
-See [Laravel crud wizard demo](https://github.com/macropay-solutions/laravel-crud-wizard-demo)
 
 ## Start using it
 
@@ -95,6 +82,8 @@ for example for lumen:
     } catch (Throwable $e) {
         \Illuminate\Support\Facades\Log::error($e->getMessage());
     }
+
+See also [Laravel crud wizard demo](https://github.com/macropay-solutions/laravel-crud-wizard-demo)
 
 ### I. Crud routes
 ```The identifier can be a primary key or a combination of primary keys with _ between them if the resource has a combined primary key!!!```
