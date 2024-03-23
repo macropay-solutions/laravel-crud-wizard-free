@@ -1,6 +1,6 @@
 # laravel-crud-wizard-free
 
-This is a stripped down untested version from the paid tested version [Laravel crud wizard](https://github.com/macropay-solutions/laravel-lumen-crud-wizard)
+This is a stripped down untested version from the paid tested version [Laravel crud wizard](https://github.com/macropay-solutions/laravel-lumen-crud-wizard) (Tested on laravel/lumen 8, laravel 9, laravel 10 and it should work also on laravel 11).
 
 ## Install
 
