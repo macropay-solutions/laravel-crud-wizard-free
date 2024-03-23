@@ -9,7 +9,6 @@
     "lumen",
     "free"
   ],
-  "minimum-stability": "dev",
   "prefer-stable": true,
   "license": "MIT",
   "require": {
