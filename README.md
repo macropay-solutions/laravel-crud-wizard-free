@@ -188,7 +188,7 @@ The relations will be retrieved as well when required. The relation keys CAN'T b
 ```pivot``` is optional and appears only on relations that are tied via a pivot.
 
 #### I.3 List filtered resource
-**GET** /{resource}?page=1&limit-10 // filters are available only in the paid version
+**GET** /{resource}?page=1&limit=10 // filters are available only in the paid version
 
 **GET** /{resource}/{identifier}/{relation}?... // available only in paid version
 
