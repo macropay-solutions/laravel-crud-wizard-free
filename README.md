@@ -246,6 +246,7 @@ Obs.
 
     index_required_on_filtering key CAN'T be used for filtering.
     use ?cursor= for cursor pagination and ?simplePaginate=1 for simplePaginate. Use none of them for length aware paginator.
+    if \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class is used use ?cursor=1 instead of emtpy string
 
 #### I.4 Update resource (or create)
 **PUT** /{resource}/{identifier}
