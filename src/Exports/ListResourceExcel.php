@@ -2,8 +2,10 @@
 
 namespace MacropaySolutions\LaravelCrudWizard\Exports;
 
-use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -24,7 +26,7 @@ class ListResourceExcel implements WithMultipleSheets
 
     public function __construct(
         BaseModel $baseModel,
-        AbstractPaginator $lap,
+        LengthAwarePaginator | Paginator | CursorPaginator $lap,
         array $withRelations = [],
         ?BaseModel $baseResourceModel = null
     ) {

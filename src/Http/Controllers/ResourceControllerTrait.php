@@ -2,9 +2,12 @@
 
 namespace MacropaySolutions\LaravelCrudWizard\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
@@ -166,13 +169,9 @@ trait ResourceControllerTrait
     protected function handleList(array $allRequest, Request $request): Response
     {
         try {
-            $paginator = $this->resourceService->list(
+            $paginator = $this->getPaginator(
+                $this->resourceService->list($allRequest),
                 $allRequest
-            )->{$this->simplePaginate ? 'simplePaginate' : 'paginate'}(
-                max((int)($allRequest['limit'] ?? 10), 1),
-                ['*'],
-                'page',
-                \max((int)($allRequest['page'] ?? 1), 1)
             );
 
             if ($request->header('Accept') === 'application/xls') {
@@ -225,10 +224,14 @@ trait ResourceControllerTrait
         );
     }
 
-    protected function getJsonResponse(LengthAwarePaginator | Paginator $paginator, array $appends = []): JsonResponse
-    {
+    protected function getJsonResponse(
+        LengthAwarePaginator | Paginator | CursorPaginator $paginator,
+        array $appends = []
+    ): JsonResponse {
         return GeneralHelper::app(JsonResponse::class, [
-            'data' => \array_merge([
+            'data' => \array_merge($paginator instanceof CursorPaginator ? [
+                'cursor' => $paginator->nextCursor()->encode(),
+            ] : [], [
                 'has_more_pages' => $paginator->hasMorePages(),
             ], $appends, GeneralHelper::filterDataByKeys(
                 $paginator->toArray(),
@@ -275,7 +278,7 @@ trait ResourceControllerTrait
         return [];
     }
 
-    protected function downloadXLS(LengthAwarePaginator | Paginator $paginator): Response
+    protected function downloadXLS(LengthAwarePaginator | Paginator | CursorPaginator $paginator): Response
     {
         /** @var ListResourceExcel $exporter */
         $exporter = GeneralHelper::app(ListResourceExcel::class, [
@@ -292,6 +295,30 @@ trait ResourceControllerTrait
 
     protected function setSimplePaginate(array $allRequest): void
     {
-        $this->simplePaginate = isset($allRequest['simplePaginate']) ? true : $this->simplePaginate;
+        $this->simplePaginate = isset($allRequest['simplePaginate'])
+            || isset($allRequest['cursor']) ? true : $this->simplePaginate;
+    }
+    /**
+     * @throws \Throwable
+     */
+    protected function getPaginator(
+        Builder | Relation $builder,
+        array $allRequest
+    ): LengthAwarePaginator | Paginator | CursorPaginator {
+        if (isset($allRequest['cursor'])) {
+            return $builder->cursorPaginate(
+                max((int)($allRequest['limit'] ?? 10), 1),
+                ['*'],
+                'cursor',
+                $allRequest['cursor']
+            );
+        }
+
+        return $builder->{$this->simplePaginate ? 'simplePaginate' : 'paginate'}(
+            max((int)($allRequest['limit'] ?? 10), 1),
+            ['*'],
+            'page',
+            \max((int)($allRequest['page'] ?? 1), 1)
+        );
     }
 }

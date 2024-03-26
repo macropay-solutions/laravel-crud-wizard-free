@@ -209,7 +209,7 @@ Json Response:
            "column_name1",
            "column_name2"
         ],
-        "current_page": 1,
+        "current_page": 1, // not present when cursor is present in request 
         "data": [
             {
                "identifier":"value",
@@ -217,12 +217,13 @@ Json Response:
                ...
             }
         ],
-        "from": 1,
-        "last_page": 1, // not present when simplePaginate is true in controller or present on request
+        "from": 1, // not present when cursor is present in request
+        "last_page": 1, // not present when cursor is present in request or when simplePaginate is true in controller or present in request
         "per_page": 10,
-        "to": 1,
-        "total": 1, // not present when simplePaginate is true in controller or present on request
-        "has_more_pages": bool
+        "to": 1, // not present when cursor is present in request
+        "total": 1, // not present when cursor is present in request or simplePaginate is true in controller or present in request
+        "has_more_pages": bool,
+        "cursor": "..." // present only when cursor is present in request
     }
 
 and for application/xls: binary with contents from `data`
@@ -232,16 +233,19 @@ The reserved words / parameters that will be used as query params are:
         page,
         limit,
         simplePaginate
+        cursor
 
 Defaults:
 
     page=1;
     limit=10;
     simplePaginate is false by default and only its presence is check in request, not its value
+    cursor is not defined
 
 Obs.
 
     index_required_on_filtering key CAN'T be used for filtering.
+    use ?cursor= for cursor pagination and ?simplePaginate=1 for simplePaginate. Use none of them for length aware paginator.
 
 #### I.4 Update resource (or create)
 **PUT** /{resource}/{identifier}
